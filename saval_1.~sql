@@ -1,0 +1,24 @@
+----------в любой моменный времени данные в таблице будут соответствовать 
+----------данным имеющимся в таблице на начало транзакции
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+SELECT * FROM savalek.people;
+COMMIT;
+
+----------в любой моменный времени данные в таблице могут
+----------быть изменены другой транзакцией
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+SELECT * FROM savalek.people;
+COMMIT;
+
+------------------------------------------------
+
+LOCK TABLE Savalek.People IN EXCLUSIVE MODE NOWAIT;
+
+INSERT INTO savalek.people
+SELECT savalek.get_people_id, 'Oleg', dbms_random.value(1, 100)
+FROM dual
+CONNECT BY LEVEL <= 20000;
+
+COMMIT;
+
+SELECT * FROM savalek.people;

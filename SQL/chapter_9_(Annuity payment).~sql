@@ -1,0 +1,41 @@
+------------------------------------------------------------------------------------------------------------------------------------------
+                           -------------------------Глава 9. Аннуитетный платеж.-----------------------
+------------------------------------------------------------------------------------------------------------------------------------------
+CREATE TABLE credit_info
+(id_client NUMBER(7) PRIMARY KEY,
+amount_ NUMBER,
+month_ NUMBER(3),
+percent_ NUMBER(5,2),
+date_ DATE);
+
+INSERT INTO credit_info VALUES(1001001, 1000000, 24, 14, to_date('22.03.2017', 'dd.mm.yyyy'));
+
+SELECT * FROM credit_info;
+
+-----
+SELECT c.id_client,
+       LEVEL num_pl,
+       ADD_MONTHS(c.date_, LEVEL) date_pl, 
+       0 amount_all, 
+       0 amount_percent, 
+       0 amount_od, 
+       0 amount_lost
+FROM credit_info c
+CONNECT BY LEVEL <= 5;
+------view
+CREATE OR REPLACE VIEW 
+SELECT id_client "ID Клиента",
+       0 "№ платежа",
+       0 "Дата платежа", 
+       0 "Сумма платежа (% + ОД)", 
+       0 "Сумма начисленных процентов", 
+       0 "Сумма погашения ОД", 
+       0 "Остаток ОД"
+FROM credit_info
+CONNECT BY LEVEL <= 5;
+
+select add_months(trunc(sysdate,'yyyy'),12)-trunc(sysdate,'yyyy') from dual;
+
+
+
+

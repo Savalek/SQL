@@ -1,0 +1,27 @@
+--work
+CREATE OR REPLACE VIEW check_view AS 
+WITH tar_w AS
+(SELECT * FROM tar ORDER BY tar_dat)
+SELECT temp.*, CASE wHEN sum_ > lim THEN 'Попался' ELSE '+' END check_
+FROM (SELECT t.id_user, t.tar_dat, t.interval_, t.lim, 
+             SUM(amt) OVER(PARTITION BY t.id_user, t.tar_dat ORDER BY f.dat) sum_, f.amt,  f.dat
+      FROM tar t, (SELECT id_user, TRUNC(dat) dat, sum(amt) amt
+                   FROM traf 
+                   GROUP BY id_user, TRUNC(dat)) f
+      WHERE t.id_user = f.id_user AND ((f.dat >= t.tar_dat - t.interval_) AND 
+                                       (f.dat <= t.tar_dat + t.interval_  
+                                                OR t.tar_dat = (SELECT MAX(tar_dat) FROM traf tt 
+                                                                WHERE tt.id_user = t.id_user)
+                                                OR f.dat < (SELECT tt.tar_dat - tt.interval_ FROM tar_w tt 
+                                                            WHERE tt.id_user = t.id_user AND t.tar_dat > tt.tar_dat AND ROWNUM = 1) ))
+      ) temp
+ORDER BY id_user, tar_dat;
+
+--beatiful out
+SELECT * FROM check_view
+UNION ALL
+SELECT null, null, null, null, null, null, null, 
+       'Нарушители: '||listagg(id_user, ', ') WITHIN GROUP(ORDER BY id_user)
+       FROM (SELECT DISTINCT id_user
+             FROM check_view
+             WHERE check_ = 'Попался') t;
