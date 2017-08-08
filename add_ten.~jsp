@@ -1,9 +1,0 @@
-create or replace and compile java source named add_ten as
-public class Adder
-{
-  public static int entry()
-  {
-  return 10;
-  }
-}
-/
