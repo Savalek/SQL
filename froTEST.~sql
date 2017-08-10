@@ -1,0 +1,22 @@
+--------СОздание юзера---------
+CREATE USER savalek
+IDENTIFIED BY a12345
+PROFILE DEFAULT;
+
+--------Изменение юзера-------
+ALTER USER savalek
+IDENTIFIED BY 12345
+QUOTA UNLIMITED ON SYSTEM
+ACCOUNT UNLOCK;
+--TEMPORARY TABLESPACE saval_temp_table
+
+--------Привилегии--------------
+GRANT CREATE SESSION TO savalek;
+GRANT CREATE TABLE TO savalek;
+GRANT DELETE ANY TABLE TO savalek;
+GRANT CREATE TABLE TO savalek;
+GRANT SELECT ANY TABLE TO savalek;
+GRANT CREATE ANY DIRECTORY TO savalek;
+
+
+
