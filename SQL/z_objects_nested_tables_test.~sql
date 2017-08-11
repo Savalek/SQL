@@ -45,3 +45,30 @@ FROM (SELECT ll.pname, DEREF(book) dr --важно!!!!!!!!!!!!!
 SELECT ll.pname "Имя", bl.bname "Название книги", bl.color "Цвет книги"
 FROM libr_list ll
 LEFT JOIN books_list bl ON ll.book = REF(bl);
+
+-----------------------------------------------------------nested tables
+CREATE TYPE xx_type_pda IS TABLE OF VARCHAR2(100);
+
+CREATE TABLE gadj(id_ NUMBER, jd_list xx_type_pda)
+  NESTED TABLE jd_list STORE AS nested_jd_list;
+
+INSERT INTO gadj VALUES(1, NEW xx_type_pda('Galaxy S6', 'LG G2', 'Nokia 3210'));
+INSERT INTO gadj VALUES(2, NEW xx_type_pda('ZTE X3', 'LG et75'));
+
+SELECT * FROM gadj;
+SELECT g.id_, gl.* FROM gadj g, TABLE(g.jd_list) gl;
+SELECT VALUE(t) FROM THE (SELECT jd_list FROM gadj g WHERE id_ = 1) t;
+
+
+
+
+
+
+
+
+
+
+
+
+
+         
