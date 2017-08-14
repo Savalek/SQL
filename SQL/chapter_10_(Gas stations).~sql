@@ -8,6 +8,7 @@ INSERT INTO gas_st VALUES(1, 30);
 INSERT INTO gas_st VALUES(2, 15);
 INSERT INTO gas_st VALUES(3, 12);
 INSERT INTO gas_st VALUES(4, 40);
+INSERT INTO gas_st VALUES(5, 40);
 
 DROP TABLE gas_add_count;
 CREATE TABLE gas_add_count
@@ -76,10 +77,10 @@ FROM comb_list cb, TABLE(cb.col) cb_col) t
 WHERE sm = 5 AND r_num2 = 1;
 
 
-SELECT *
-FROM (SELECT cb.*, cnt.*, row_number() OVER(PARTITION BY r_num ORDER BY r_num) gs_num
+SELECT r_num, new_gs, dl, dl/(new_gs + 1) dl_new, MAX(dl_new) OVER(partiton)
+FROM (SELECT cb.*, COLUMN_VALUE new_gs, row_number() OVER(PARTITION BY r_num ORDER BY r_num) gs_num
       FROM comb_arr cb, TABLE(cb.col) cnt) t
-      LEFT JOIN gas_st gs ON 
+      LEFT JOIN gas_st gs ON gs.n = t.gs_num
 
 
 
@@ -90,9 +91,19 @@ SELECT * FROM my_map m, TABLE(m.nums) n;
 
 SELECT CAST(COLLECT(g.n) AS num_arr) AS my_collect FROM gas_st g;
 
+CREATE TABLE ttt
+(n NUMBER(10),
+c VARCHAR(10 CHAR));
 
+TRUNCATE TABLE ttt;
+INSERT INTO ttt VALUES(1,'a');
+INSERT INTO ttt VALUES(2,'b');
+INSERT INTO ttt VALUES(3,'c');
+INSERT INTO ttt VALUES(4,'a');
+INSERT INTO ttt VALUES(1,'b');
+INSERT INTO ttt VALUES(2,'c');
 
-
+SELECT ttt.*, COUNT(c) OVER(ORDER BY n) cnt, SUM(n) OVER() sm FROM ttt;
 
 
 

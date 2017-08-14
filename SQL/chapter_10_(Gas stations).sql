@@ -8,7 +8,7 @@ INSERT INTO gas_st VALUES(1, 30);
 INSERT INTO gas_st VALUES(2, 15);
 INSERT INTO gas_st VALUES(3, 12);
 INSERT INTO gas_st VALUES(4, 40);
-INSERT INTO gas_st VALUES(5, 40);
+--INSERT INTO gas_st VALUES(5, 40);
 
 DROP TABLE gas_add_count;
 CREATE TABLE gas_add_count
@@ -58,16 +58,19 @@ INSERT INTO my_map VALUES(2, NEW num_arr(44, 55, 66));
 INSERT INTO my_map
 
 CREATE OR REPLACE VIEW comb_arr as
-WITH arr_list AS ( SELECT MOD(LEVEL - 1, (SELECT gs_cnt+1 FROM gas_add_count)) n
-                   FROM dual
-                   CONNECT BY LEVEL <= (SELECT gs_cnt+1 FROM gas_add_count)*(SELECT COUNT(*) FROM gas_st) ),
-comb_list AS                               
+WITH comb_list AS                               
 (SELECT ROWNUM r_num, col
 FROM (
       SELECT COLUMN_VALUE col
-      FROM TABLE(POWERMULTISET_BY_CARDINALITY( 
-                                               (SELECT CAST(COLLECT(ar.n) AS num_arr) AS my_collect FROM arr_list ar),
-                                               (SELECT COUNT(*) FROM gas_st)) ) tt
+      FROM TABLE(POWERMULTISET_BY_CARDINALITY    ( ----3(1ый параметр POWERMULTISET_BY_CARDINALITY) 
+                   (SELECT CAST(COLLECT(ar.n) AS num_arr) AS my_collect     ---2 Создание коллекции из списка чисел
+                    FROM ( SELECT MOD(LEVEL - 1, (SELECT gs_cnt+1 FROM gas_add_count)) n                          --1
+                           FROM dual                                                                              --1 Список чисел от 0 до N(кол-во новых ГС) * кол-во отрезков
+                           CONNECT BY LEVEL <= (SELECT gs_cnt+1 FROM gas_add_count)*(SELECT COUNT(*) FROM gas_st) --1
+                         ) ar                                                                                     --1
+                   ),
+                   (SELECT COUNT(*) FROM gas_st) ) ----3(2ый параметр POWERMULTISET_BY_CARDINALITY) 
+                ) tt
      ) t
 )
 SELECT r_num, col
@@ -76,11 +79,16 @@ SELECT r_num, col, COLUMN_VALUE,SUM(COLUMN_VALUE)OVER(PARTITION BY r_num) sm, ro
 FROM comb_list cb, TABLE(cb.col) cb_col) t
 WHERE sm = 5 AND r_num2 = 1;
 
-
-SELECT r_num, new_gs, dl, dl/(new_gs + 1) dl_new, MAX(dl_new) OVER(partiton)
-FROM (SELECT cb.*, COLUMN_VALUE new_gs, row_number() OVER(PARTITION BY r_num ORDER BY r_num) gs_num
-      FROM comb_arr cb, TABLE(cb.col) cnt) t
-      LEFT JOIN gas_st gs ON gs.n = t.gs_num
+select gs_num, dl, new_gs add_gs
+from (select tt.*, dense_rank() over(order by max_dl_new, r_num) dense_num
+      from (SELECT r_num, gs_num, new_gs, dl, MAX(dl/(new_gs + 1)) OVER(partition by r_num) max_dl_new
+            FROM (SELECT cb.*, COLUMN_VALUE new_gs, row_number() OVER(PARTITION BY r_num ORDER BY r_num) gs_num
+                  FROM comb_arr cb, TABLE(cb.col) cnt) t
+                  LEFT JOIN gas_st gs ON gs.n = t.gs_num
+           )tt
+     )t
+where dense_num = 1
+order by gs_num;
 
 
 
