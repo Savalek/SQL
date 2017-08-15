@@ -34,7 +34,6 @@ MODEL
                     --gs[ANY] = gs[CV(n)] + CASE MAX(dl_now)[ANY] WHEN dl_now[CV(n)] THEN 1 ELSE 0 END
                    );
 
-
 SELECT nm "№ Промежутка", dl "Расстояние"
 FROM  (SELECT temp.*, coalesce(LAG(max_, 1) OVER(ORDER BY n) + 1, 1) min_
       FROM (SELECT n, dl/(gs+1) dl, SUM(gs+1) OVER(ORDER BY n) max_
@@ -47,15 +46,6 @@ WHERE nm BETWEEN min_ AND max_;
  
 -----------------------------------------------Используй то не зная что...
 CREATE OR REPLACE TYPE num_arr IS TABLE OF NUMBER;
-
-CREATE TABLE my_map(n NUMBER(20) PRIMARY KEY, nums num_arr)
-  NESTED TABLE nums STORE AS nested_nums;
-  
-TRUNCATE TABLE my_map;
-INSERT INTO my_map VALUES(1, NEW num_arr(11, 22, 33));
-INSERT INTO my_map VALUES(2, NEW num_arr(44, 55, 66));
-
-INSERT INTO my_map
 
 CREATE OR REPLACE VIEW comb_arr as
 WITH comb_list AS                               
@@ -75,9 +65,9 @@ FROM (
 )
 SELECT r_num, col
 FROM(
-SELECT r_num, col, COLUMN_VALUE,SUM(COLUMN_VALUE)OVER(PARTITION BY r_num) sm, row_number() OVER(PARTITION BY r_num ORDER BY r_num) r_num2
+SELECT r_num, col, COLUMN_VALUE, SUM(COLUMN_VALUE)OVER(PARTITION BY r_num) sm, row_number() OVER(PARTITION BY r_num ORDER BY r_num) r_num2
 FROM comb_list cb, TABLE(cb.col) cb_col) t
-WHERE sm = 5 AND r_num2 = 1;
+WHERE sm = 5  AND r_num2 = 1;
 
 select gs_num, dl, new_gs add_gs
 from (select tt.*, dense_rank() over(order by max_dl_new, r_num) dense_num
@@ -90,30 +80,13 @@ from (select tt.*, dense_rank() over(order by max_dl_new, r_num) dense_num
 where dense_num = 1
 order by gs_num;
 
-
-
-
-SELECT * FROM my_map m, TABLE(m.nums) n;
 --gas_st(n, dl)
 --gas_add_count(gs_cnt)
 
-SELECT CAST(COLLECT(g.n) AS num_arr) AS my_collect FROM gas_st g;
-
-CREATE TABLE ttt
-(n NUMBER(10),
-c VARCHAR(10 CHAR));
-
-TRUNCATE TABLE ttt;
-INSERT INTO ttt VALUES(1,'a');
-INSERT INTO ttt VALUES(2,'b');
-INSERT INTO ttt VALUES(3,'c');
-INSERT INTO ttt VALUES(4,'a');
-INSERT INTO ttt VALUES(1,'b');
-INSERT INTO ttt VALUES(2,'c');
-
-SELECT ttt.*, COUNT(c) OVER(ORDER BY n) cnt, SUM(n) OVER() sm FROM ttt;
-
-
+--Сравнение производительности
+SELECT ceil(LEVEL / 10) otr_cnt, MOD(LEVEL - 1, 10) gs_cnt
+FROM dual
+CONNECT BY LEVEL <= 100;
 
 
 

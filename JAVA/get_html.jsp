@@ -26,7 +26,7 @@ public class HTTPGet
       rd.close();
       return result.toString()
                    .replaceAll(">", ">\n")
-                   .replaceAll(",", ",\n")
+                   //.replaceAll(",", ",\n")
                    .replaceAll(";", ";\n")
                    /*.substring(0, 1000)*/;
    }
